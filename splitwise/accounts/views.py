@@ -1,8 +1,11 @@
 from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework import generics, mixins
+from rest_framework.views import APIView
+
 from accounts.models import UserProfile, UserActionLog
 from accounts.serializers import UserSerializer
+from accounts.utils import verify_transaction_data, add_transaction_data
 
 
 class UserAPIView(mixins.CreateModelMixin, generics.ListAPIView): # DetailView CreateView FormView
@@ -46,3 +49,12 @@ class UserRudView(generics.RetrieveUpdateDestroyAPIView): # DetailView CreateVie
 
     def get_serializer_context(self, *args, **kwargs):
         return {"request": self.request}
+
+
+class UserAddTransactionView(APIView):
+    def post(self, request):
+        params = request.data
+        result = verify_transaction_data(params)
+        if result:
+            return result
+        return add_transaction_data(params)

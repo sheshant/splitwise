@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.template.defaultfilters import escape
 
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from accounts.models import UserProfile, UserActionLog
+from accounts.models import UserProfile, UserActionLog, UserGroup, UserTransaction
 
 
 class UserAdmin(BaseUserAdmin):
@@ -61,8 +61,32 @@ class UserActionLogAdmin(admin.ModelAdmin):
     )
 
 
+class UserGroupAdmin(admin.ModelAdmin):
+    list_display = ('group_name', 'created_at')
+
+    @staticmethod
+    def users(obj):
+        return_data = ''
+        for user in obj.users.all():
+            return_data += '<li><a href="{}" target="_blank">{}</a></li>'.format(reverse(
+                "admin:auth_user_change", args=(user.id,)), escape(user.username))
+        return "<ol>{}</ol".format(return_data)
+
+    users.allow_tags = True
+
+
+class UserTransactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'own_to', 'reason', 'price', 'created_at', 'las_modified_at')
+    search_fields = ('user', 'own_to', 'reason', 'created_at')
+    list_filter = (
+        ('created_at', DateFieldListFilter),
+    )
+
+
 admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(UserGroup, UserGroupAdmin)
 admin.site.register(UserActionLog, UserActionLogAdmin)
+admin.site.register(UserTransaction, UserTransactionAdmin)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
